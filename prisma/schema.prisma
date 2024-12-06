@@ -1,0 +1,76 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           Int            @id @default(autoincrement())
+  name         String         @default("")
+  numberPhone  String         @default("")
+  email        String         @unique
+  password     String         @default("")
+  jurusan      String         @default("")
+  role         UserRole
+  peminjaman   Peminjaman[]
+  ruangan      Barang[]
+  pengembalian Pengembalian[]
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+}
+
+model Barang {
+  id           Int            @id @default(autoincrement())
+  nameItem     String         @default("")
+  category     String         @default("")
+  location     String         @default("")
+  qty          Int            @default(0)
+  peminjaman   Peminjaman[]
+  user         User[]
+  pengembalian Pengembalian[]
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+}
+
+model Peminjaman {
+  id           Int            @id @default(autoincrement())
+  user_id      Int            @default(0)
+  barang_id    Int            @default(0)
+  deskripsi    String         @default("")
+  borrow_date  DateTime
+  return_date  DateTime
+  Barang       Barang         @relation(fields: [barang_id], references: [id])
+  user         User           @relation(fields: [user_id], references: [id])
+  pengembalian Pengembalian[]
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+}
+
+model Pengembalian {
+  id                 Int        @id @default(autoincrement())
+  user_id            Int
+  barang_id          Int
+  peminjaman_id      Int
+  return_date        DateTime   @default(now())
+  actual_return_date DateTime?
+  notes              String     @default("")
+  Peminjaman         Peminjaman @relation(fields: [peminjaman_id], references: [id])
+  user               User       @relation(fields: [user_id], references: [id])
+  barang             Barang     @relation(fields: [barang_id], references: [id])
+  createdAt          DateTime   @default(now())
+  updatedAt          DateTime   @updatedAt
+}
+
+enum UserRole {
+  USER
+  ADMIN
+}
